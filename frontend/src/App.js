@@ -7,20 +7,32 @@ function App() {
     const [tasks, setTasks] = useState([]);
 
     useEffect(() => {
+        fetchTasks();
+    }, []);
+
+    const fetchTasks = () => {
         axios.get('http://localhost:5000/tasks')
             .then(response => setTasks(response.data))
             .catch(error => console.error('Error fetching tasks:', error));
-    }, []);
+    };
 
     const addTask = () => {
         if (task.trim()) {
             axios.post('http://localhost:5000/tasks', { task })
                 .then(response => {
-                    setTasks(response.data);
+                    setTasks([...tasks, response.data]);
                     setTask('');
                 })
                 .catch(error => console.error('Error adding task:', error));
         }
+    };
+
+    const deleteTask = taskId => {
+        axios.delete(`http://localhost:5000/tasks/${taskId}`)
+            .then(() => {
+                setTasks(tasks.filter(t => t.id !== taskId));
+            })
+            .catch(error => console.error('Error deleting task:', error));
     };
 
     return (
@@ -34,8 +46,11 @@ function App() {
             />
             <button onClick={addTask}>Add Task</button>
             <ul>
-                {tasks.map((t, index) => (
-                    <li key={index}>{t}</li>
+                {tasks.map(task => (
+                    <li key={task.id}>
+                        {task.task}
+                        <button onClick={() => deleteTask(task.id)}>X</button>
+                    </li>
                 ))}
             </ul>
         </div>
